@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Synap • Synergy AI-Powered</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&amp;family=Space+Grotesk:wght@500;600&amp;display=swap');
+        
+        :root {
+            --cyan: #00f0ff;
+            --amber: #ffcc66;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: #000000;
+            color: #ffffff;
+            font-family: 'Inter', system_ui, sans-serif;
+            overflow: hidden;
+            height: 100vh;
+            cursor: default;
+        }
+        
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+        
+        .main-content {
+            position: relative;
+            z-index: 1;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            text-align: center;
+            padding: 40px;
+        }
+        
+        .logo {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 72px;
+            font-weight: 600;
+            letter-spacing: -4px;
+            background: linear-gradient(90deg, #ffffff, #00f0ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 16px;
+        }
+        
+        .tagline {
+            font-size: 18px;
+            color: #888888;
+            font-weight: 300;
+            max-width: 420px;
+            line-height: 1.5;
+        }
+        
+        /* JARVIS Menu Styles */
+        #jarvis-menu {
+            position: fixed;
+            background: rgba(10, 12, 20, 0.92);
+            border: 1px solid rgba(0, 240, 255, 0.3);
+            border-radius: 16px;
+            box-shadow: 0 0 60px rgba(0, 240, 255, 0.15);
+            backdrop-filter: blur(20px);
+            padding: 8px 0;
+            min-width: 280px;
+            z-index: 1000;
+            display: none;
+            font-size: 15px;
+        }
+        
+        .menu-header {
+            padding: 16px 24px 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            color: #00f0ff;
+            font-size: 13px;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+        }
+        
+        .menu-item {
+            padding: 14px 24px;
+            color: #e0e0e0;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.23, 1, 0.32, 1);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            position: relative;
+        }
+        
+        .menu-item:hover {
+            background: rgba(0, 240, 255, 0.06);
+            color: #ffffff;
+        }
+        
+        .menu-item:active {
+            background: rgba(0, 240, 255, 0.12);
+        }
+        
+        .menu-item:last-child {
+            margin-top: 4px;
+            border-top: 1px solid rgba(255,255,255,0.06);
+            color: #888888;
+            font-size: 14px;
+        }
+        
+        .menu-item:last-child:hover {
+            color: #ffcc66;
+        }
+        
+        .menu-item .icon {
+            width: 18px;
+            height: 18px;
+            opacity: 0.7;
+        }
+        
+        .scan-line {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 1px;
+            background: linear-gradient(transparent, rgba(0,240,255,0.4), transparent);
+            animation: scan 2.5s linear infinite;
+            pointer-events: none;
+        }
+        
+        @keyframes scan {
+            0% { transform: translateY(-100%); }
+            100% { transform: translateY(400%); }
+        }
+        
+        /* Classic Mode Navbar */
+        #classic-navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(0,0,0,0.95);
+            border-bottom: 1px solid #333;
+            padding: 16px 40px;
+            display: none;
+            z-index: 2000;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .classic-nav {
+            display: flex;
+            gap: 32px;
+            list-style: none;
+        }
+        
+        .classic-nav a {
+            color: #cccccc;
+            text-decoration: none;
+            font-size: 15px;
+            transition: color 0.2s ease;
+        }
+        
+        .classic-nav a:hover {
+            color: #ffffff;
+        }
+        
+        .status-bar {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(20,22,30,0.8);
+            color: #666;
+            font-size: 12px;
+            padding: 6px 16px;
+            border-radius: 20px;
+            z-index: 100;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- Background Canvas -->
+    <canvas id="bg-canvas"></canvas>
+    
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="logo">synap</div>
+        <div class="tagline">
+            Synergy AI-Powered.<br>
+            A living interface that thinks with you.
+        </div>
+    </div>
+    
+    <!-- JARVIS Menu -->
+    <div id="jarvis-menu">
+        <div class="menu-header" id="menu-greeting"></div>
+        
+        <div class="menu-item" data-action="talk">
+            <span>💬</span> Talk to Synap
+        </div>
+        <div class="menu-item" data-action="explore">
+            <span>🔍</span> Explore Solutions
+        </div>
+        <div class="menu-item" data-action="work">
+            <span>📁</span> Our Work
+        </div>
+        <div class="menu-item" data-action="about">
+            <span>✧</span> About Synap
+        </div>
+        <div class="menu-item" data-action="connect">
+            <span>✉︎</span> Connect
+        </div>
+        <div class="menu-item" data-action="classic">
+            <span>≡</span> Classic Mode
+        </div>
+    </div>
+    
+    <!-- Classic Navbar -->
+    <nav id="classic-navbar">
+        <div style="font-weight:600; font-size:18px; letter-spacing:-1px;">synap</div>
+        <ul class="classic-nav">
+            <li><a href="#">Solutions</a></li>
+            <li><a href="#">Work</a></li>
+            <li><a href="#">About</a></li>
+            <li><a href="#">Contact</a></li>
+        </ul>
+        <div onclick="switchToJarvisMode()" style="cursor:pointer; color:#ffcc66; font-size:13px;">Return to Synap Mode →</div>
+    </nav>
+    
+    <div class="status-bar" id="status-bar">
+        Synap is listening • Mouse idle mode active
+    </div>
+    
+    <script>
+        // ============================================
+        // SYNAP - First Trial Version
+        // All behaviors embedded
+        // ============================================
+        
+        const canvas = document.getElementById('bg-canvas');
+        const ctx = canvas.getContext('2d', { alpha: true });
+        
+        let width, height;
+        let neuralPoints = [];
+        let particles = [];
+        let memoryFragments = [];
+        let mouseX = 0, mouseY = 0;
+        let prevMouseX = 0, prevMouseY = 0;
+        let mouseSpeed = 0;
+        let idleTimer = null;
+        let isIdle = false;
+        let isEnergetic = false;
+        
+        // Visitor detection
+        let isReturning = false;
+        
+        function resizeCanvas() {
+            width = window.innerWidth;
+            height = window.innerHeight;
+            canvas.width = width;
+            canvas.height = height;
+        }
+        
+        function initNeuralNetwork() {
+            neuralPoints = [];
+            for (let i = 0; i < 42; i++) {
+                neuralPoints.push({
+                    x: Math.random() * width,
+                    y: Math.random() * height,
+                    vx: (Math.random() - 0.5) * 0.6,
+                    vy: (Math.random() - 0.5) * 0.6,
+                    radius: Math.random() * 1.8 + 1.2
+                });
+            }
+        }
+        
+        function initParticles() {
+            particles = [];
+            for (let i = 0; i < 28; i++) {
+                particles.push({
+                    x: Math.random() * width,
+                    y: Math.random() * height,
+                    size: Math.random() * 2.5 + 0.8,
+                    speed: Math.random() * 0.35 + 0.15,
+                    opacity: Math.random() * 0.4 + 0.2
+                });
+            }
+        }
+        
+        function initMemoryFragments() {
+            memoryFragments = [
+                { text: "Synergy score: 94", x: Math.random() * width, y: Math.random() * height * 0.6, opacity: 0.22, speed: 0.18 },
+                { text: "Factory line 7 running at 99.4%", x: Math.random() * width, y: Math.random() * height * 0.7, opacity: 0.18, speed: 0.22 },
+                { text: "Last project optimized 38%", x: Math.random() * width, y: Math.random() * height * 0.5, opacity: 0.25, speed: 0.15 },
+                { text: "Neural Manufacturing active", x: Math.random() * width, y: Math.random() * height * 0.8, opacity: 0.19, speed: 0.27 },
+                { text: "AIoT Intelligence engaged", x: Math.random() * width, y: Math.random() * height * 0.4, opacity: 0.21, speed: 0.19 }
+            ];
+        }
+        
+        function drawBackground() {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.96)';
+            ctx.fillRect(0, 0, width, height);
+            
+            // Neural connections
+            ctx.strokeStyle = isEnergetic ? 'rgba(0, 240, 255, 0.35)' : 'rgba(0, 240, 255, 0.12)';
+            ctx.lineWidth = isEnergetic ? 1.4 : 0.8;
+            
+            for (let i = 0; i < neuralPoints.length; i++) {
+                for (let j = i + 1; j < neuralPoints.length; j++) {
+                    const p1 = neuralPoints[i];
+                    const p2 = neuralPoints[j];
+                    const dist = Math.hypot(p1.x - p2.x, p1.y - p2.y);
+                    
+                    if (dist < 220) {
+                        ctx.beginPath();
+                        ctx.moveTo(p1.x, p1.y);
+                        ctx.lineTo(p2.x, p2.y);
+                        ctx.stroke();
+                    }
+                }
+            }
+            
+            // Neural nodes
+            ctx.fillStyle = isEnergetic ? '#00f0ff' : '#4488aa';
+            for (let p of neuralPoints) {
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Gentle glow
+                ctx.fillStyle = isEnergetic ? 'rgba(0,240,255,0.25)' : 'rgba(68,136,170,0.15)';
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.radius * 2.8, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = isEnergetic ? '#00f0ff' : '#4488aa';
+            }
+            
+            // Ambient particles
+            ctx.fillStyle = isEnergetic ? 'rgba(255,204,102,0.7)' : 'rgba(180,200,220,0.45)';
+            for (let p of particles) {
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            
+            // Floating Memory Fragments
+            ctx.font = '13px Inter, system-ui, sans-serif';
+            ctx.fillStyle = 'rgba(200, 210, 220, 0.55)';
+            
+            for (let frag of memoryFragments) {
+                ctx.globalAlpha = frag.opacity;
+                ctx.fillText(frag.text, frag.x, frag.y);
+                ctx.globalAlpha = 1;
+            }
+        }
+        
+        function updateBackground() {
+            // Move neural points
+            for (let p of neuralPoints) {
+                p.x += p.vx;
+                p.y += p.vy;
+                
+                // Bounce off edges
+                if (p.x < 0 || p.x > width) p.vx *= -1;
+                if (p.y < 0 || p.y > height) p.vy *= -1;
+                
+                // Gentle attraction to mouse when energetic
+                if (isEnergetic && mouseX > 0) {
+                    const dx = mouseX - p.x;
+                    const dy = mouseY - p.y;
+                    const dist = Math.hypot(dx, dy);
+                    if (dist < 280) {
+                        p.vx += dx * 0.0008;
+                        p.vy += dy * 0.0008;
+                    }
+                }
+            }
+            
+            // Move particles
+            for (let p of particles) {
+                p.y -= p.speed;
+                if (p.y < 0) {
+                    p.y = height;
+                    p.x = Math.random() * width;
+                }
+                
+                // Mouse influence
+                if (mouseX > 0) {
+                    const dx = mouseX - p.x;
+                    const dy = mouseY - p.y;
+                    const dist = Math.hypot(dx, dy);
+                    if (dist < 160) {
+                        p.x += dx * 0.012;
+                        p.y += dy * 0.012;
+                    }
+                }
+            }
+            
+            // Move memory fragments
+            for (let frag of memoryFragments) {
+                frag.x += frag.speed * 0.6;
+                if (frag.x > width + 80) {
+                    frag.x = -120;
+                    frag.y = Math.random() * height * 0.9;
+                }
+            }
+        }
+        
+        function animateBackground() {
+            updateBackground();
+            drawBackground();
+            requestAnimationFrame(animateBackground);
+        }
+        
+        // Mouse velocity & idle detection
+        function trackMouse(e) {
+            prevMouseX = mouseX;
+            prevMouseY = mouseY;
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+            
+            const dx = mouseX - prevMouseX;
+            const dy = mouseY - prevMouseY;
+            mouseSpeed = Math.hypot(dx, dy);
+            
+            // Reset idle timer
+            clearTimeout(idleTimer);
+            isIdle = false;
+            
+            if (mouseSpeed > 18) {
+                isEnergetic = true;
+                document.body.style.cursor = 'crosshair';
+            } else {
+                isEnergetic = false;
+                document.body.style.cursor = 'default';
+            }
+            
+            idleTimer = setTimeout(() => {
+                isIdle = true;
+                isEnergetic = false;
+                document.getElementById('status-bar').innerHTML = 'Synap is listening • Meditative mode';
+            }, 4200);
+        }
+        
+        // Visitor detection (cookie)
+        function checkVisitor() {
+            const visited = localStorage.getItem('synap_visited');
+            
+            if (visited) {
+                isReturning = true;
+            } else {
+                localStorage.setItem('synap_visited', 'true');
+                isReturning = false;
+            }
+        }
+        
+        // JARVIS Menu
+        const jarvisMenu = document.getElementById('jarvis-menu');
+        const menuGreeting = document.getElementById('menu-greeting');
+        
+        function showJarvisMenu(x, y) {
+            // Set greeting
+            if (isReturning) {
+                menuGreeting.innerHTML = 'Synap is glad you are back. Welcome.';
+            } else {
+                menuGreeting.innerHTML = 'Synap welcomes you.';
+            }
+            
+            jarvisMenu.style.left = `${x}px`;
+            jarvisMenu.style.top = `${y}px`;
+            jarvisMenu.style.display = 'block';
+            
+            // Play activation sound
+            playActivationSound();
+            
+            // Auto-hide after 12 seconds if no interaction
+            setTimeout(() => {
+                if (jarvisMenu.style.display === 'block') {
+                    jarvisMenu.style.display = 'none';
+                }
+            }, 12000);
+        }
+        
+        function hideJarvisMenu() {
+            jarvisMenu.style.display = 'none';
+        }
+        
+        // Menu item actions
+        document.querySelectorAll('.menu-item').forEach(item => {
+            item.addEventListener('click', (e) => {
+                const action = item.dataset.action;
+                hideJarvisMenu();
+                
+                switch(action) {
+                    case 'talk':
+                        alert('🌀 Opening holographic orb interface...\n(Talk to Synap feature coming in next iteration)');
+                        break;
+                    case 'explore':
+                        alert('🔍 Exploring Synap Solutions...');
+                        break;
+                    case 'work':
+                        alert('📁 Loading Our Work showcase...');
+                        break;
+                    case 'about':
+                        alert('✧ About Synap page would open here.');
+                        break;
+                    case 'connect':
+                        alert('✉︎ Connect with Synap team.');
+                        break;
+                    case 'classic':
+                        switchToClassicMode();
+                        break;
+                }
+            });
+            
+            // Hover sound
+            item.addEventListener('mouseenter', () => {
+                playHoverSound();
+            });
+        });
+        
+        // Right-click handler (desktop)
+        document.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+            showJarvisMenu(e.clientX, e.clientY);
+        });
+        
+        // Long-press handler (mobile)
+        let longPressTimer;
+        document.addEventListener('touchstart', function(e) {
+            longPressTimer = setTimeout(() => {
+                const touch = e.touches[0];
+                showJarvisMenu(touch.clientX, touch.clientY);
+            }, 620);
+        });
+        
+        document.addEventListener('touchend', function() {
+            clearTimeout(longPressTimer);
+        });
+        
+        // Click anywhere to close menu
+        document.addEventListener('click', function(e) {
+            if (!jarvisMenu.contains(e.target)) {
+                hideJarvisMenu();
+            }
+        });
+        
+        // Classic Mode toggle
+        function switchToClassicMode() {
+            document.getElementById('classic-navbar').style.display = 'flex';
+            document.getElementById('bg-canvas').style.opacity = '0.15';
+            jarvisMenu.style.display = 'none';
+            
+            // Change status
+            document.getElementById('status-bar').innerHTML = 'Classic Mode • Triple-click bottom-right to return';
+        }
+        
+        function switchToJarvisMode() {
+            document.getElementById('classic-navbar').style.display = 'none';
+            document.getElementById('bg-canvas').style.opacity = '1';
+            document.getElementById('status-bar').innerHTML = 'Synap is listening • Mouse idle mode active';
+        }
+        
+        // Triple-click detection for Classic Mode backdoor
+        let clickCount = 0;
+        let clickTimer;
+        
+        document.addEventListener('click', function(e) {
+            // Only detect clicks in bottom-right corner
+            if (e.clientX > window.innerWidth - 80 && e.clientY > window.innerHeight - 80) {
+                clickCount++;
+                
+                clearTimeout(clickTimer);
+                clickTimer = setTimeout(() => {
+                    clickCount = 0;
+                }, 800);
+                
+                if (clickCount === 3) {
+                    clickCount = 0;
+                    const navbar = document.getElementById('classic-navbar');
+                    
+                    if (navbar.style.display === 'flex') {
+                        switchToJarvisMode();
+                    } else {
+                        switchToClassicMode();
+                    }
+                }
+            }
+        });
+        
+        // Web Audio API Sounds
+        let audioContext;
+        
+        function initAudio() {
+            try {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            } catch(e) {}
+        }
+        
+        function playActivationSound() {
+            if (!audioContext) return;
+            
+            const osc = audioContext.createOscillator();
+            const gain = audioContext.createGain();
+            const filter = audioContext.createBiquadFilter();
+            
+            osc.type = 'sine';
+            osc.frequency.value = 680;
+            filter.type = 'lowpass';
+            filter.frequency.value = 2400;
+            
+            gain.gain.value = 0.08;
+            
+            const now = audioContext.currentTime;
+            gain.gain.setValueAtTime(0.08, now);
+            gain.gain.linearRampToValueAtTime(0.001, now + 0.9);
+            
+            osc.connect(filter);
+            filter.connect(gain);
+            gain.connect(audioContext.destination);
+            
+            osc.start(now);
+            osc.stop(now + 0.95);
+        }
+        
+        function playHoverSound() {
+            if (!audioContext) return;
+            
+            const osc = audioContext.createOscillator();
+            const gain = audioContext.createGain();
+            
+            osc.type = 'triangle';
+            osc.frequency.value = 1240;
+            gain.gain.value = 0.025;
+            
+            const now = audioContext.currentTime;
+            gain.gain.setValueAtTime(0.025, now);
+            gain.gain.linearRampToValueAtTime(0.001, now + 0.28);
+            
+            osc.connect(gain);
+            gain.connect(audioContext.destination);
+            
+            osc.start(now);
+            osc.stop(now + 0.3);
+        }
+        
+        // Keyboard escape
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                hideJarvisMenu();
+            }
+            if (e.key.toLowerCase() === 'c' && e.metaKey) {
+                e.preventDefault();
+                const navbar = document.getElementById('classic-navbar');
+                if (navbar.style.display === 'flex') {
+                    switchToJarvisMode();
+                } else {
+                    switchToClassicMode();
+                }
+            }
+        });
+        
+        // Initialize everything
+        function init() {
+            resizeCanvas();
+            initNeuralNetwork();
+            initParticles();
+            initMemoryFragments();
+            initAudio();
+            checkVisitor();
+            
+            // Start background animation
+            animateBackground();
+            
+            // Initial mouse position
+            document.addEventListener('mousemove', trackMouse);
+            
+            // Touch support for mouse position
+            document.addEventListener('touchmove', function(e) {
+                const touch = e.touches[0];
+                mouseX = touch.clientX;
+                mouseY = touch.clientY;
+            });
+            
+            // Welcome console message
+            console.log('%c[Synap] First Trial Version loaded successfully. All behaviors embedded.', 'color:#00f0ff');
+            
+            // Auto-show status
+            setTimeout(() => {
+                document.getElementById('status-bar').style.opacity = '1';
+            }, 1800);
+            
+            // Easter egg: press "?" to show current mode
+            document.addEventListener('keypress', function(e) {
+                if (e.key === '?') {
+                    const mode = isEnergetic ? 'Energetic' : (isIdle ? 'Meditative' : 'Calm');
+                    alert(`Current Synap mode: ${mode}\nVisitor: ${isReturning ? 'Returning' : 'First-time'}`);
+                }
+            });
+            
+            // Make sure menu is hidden initially
+            jarvisMenu.style.display = 'none';
+        }
+        
+        // Boot
+        window.onload = init;
+        window.onresize = resizeCanvas;
+    </script>
+</body>
+</html>
